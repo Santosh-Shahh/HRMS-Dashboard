@@ -1,0 +1,8 @@
+export const hoursData=[{day:'Mon',scheduled:8500,actual:8210},{day:'Tue',scheduled:8500,actual:8430},{day:'Wed',scheduled:8500,actual:8100},{day:'Thu',scheduled:8500,actual:8600},{day:'Fri',scheduled:8500,actual:8300},{day:'Sat',scheduled:4200,actual:4100},{day:'Sun',scheduled:0,actual:0}];
+export const deptData=[{name:'Call Center',value:45,color:'#3b82f6'},{name:'Hunt Ads',value:25,color:'#6366f1'},{name:'Support',value:20,color:'#34d399'},{name:'Mgmt',value:10,color:'#cbd5e1'}];
+export const payrollData=[{month:'Feb',gross:125,taxes:25},{month:'Mar',gross:128,taxes:26},{month:'Apr',gross:128,taxes:26},{month:'May',gross:132,taxes:28},{month:'Jun',gross:135,taxes:29},{month:'Jul',gross:142,taxes:31}];
+export type Leave={id:number;name:string;empId:string;dept:string;type:string;reason:string;date:string;duration:string;initials:string;status:'pending'|'approved'|'rejected'};
+export const initialLeaves:Leave[]=[
+{id:1,name:'Madhu Kumari',empId:'#3264',dept:'Call Center',type:'Unpaid Leave',reason:'"Out of station"',date:'15 Jul 2026',duration:'1 Day (Single)',initials:'MK',status:'pending'},
+{id:2,name:'Aayush Semwal',empId:'#5448',dept:'Hunt Ads Division',type:'Paid Leave',reason:'"Some work"',date:'15 Jul 2026',duration:'1 Day (Single)',initials:'AS',status:'pending'},
+{id:3,name:'Ansh Jangral',empId:'#5216',dept:'Supporting Staff',type:'Paid Leave',reason:'"Ghumne jaa raha..."',date:'11-13 Jul 2026',duration:'3 Days (Multiple)',initials:'AJ',status:'pending'}];
