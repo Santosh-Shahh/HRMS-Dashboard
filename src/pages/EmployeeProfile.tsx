@@ -9,12 +9,14 @@ import { getEmployeeById, getEmployeeFullName } from '../data/employees';
 import { getAttendanceByEmployee } from '../data/attendance';
 import { leaveBalances } from '../data/leaves';
 import { documents } from '../data/documents';
+import { payrollRecords, salaryStructures } from '../data/payroll';
 
 const tabs = [
   { id: 'personal', label: 'Personal Details' },
   { id: 'job', label: 'Job Information' },
   { id: 'attendance', label: 'Attendance Summary' },
   { id: 'leaves', label: 'Leave Summary' },
+  { id: 'payroll', label: 'Payroll' },
   { id: 'documents', label: 'Documents' },
   { id: 'activity', label: 'Activity Timeline' },
 ];
@@ -41,6 +43,8 @@ export default function EmployeeProfile() {
   const late = attendance.filter(a => a.status === 'Late').length;
   const empDocs = documents.filter(d => d.employeeId === employee.id);
   const leaveBalance = leaveBalances.find(l => l.employeeId === employee.id);
+  const empPayroll = payrollRecords.filter(p => p.employeeId === employee.id);
+  const salaryStructure = salaryStructures.find(s => s.employeeId === employee.id);
 
   const activities = [
     { date: '2026-07-18', icon: <Clock size={14} />, text: 'Checked in at 09:02 AM', color: 'bg-blue-100 text-blue-600' },
@@ -166,6 +170,56 @@ export default function EmployeeProfile() {
               ) : (
                 <p className="text-slate-500 text-sm text-center py-8">Leave balance data not available for this employee.</p>
               )}
+            </div>
+          )}
+
+          {activeTab === 'payroll' && (
+            <div className="space-y-6">
+              {salaryStructure && (
+                <div className="bg-slate-50 rounded-xl p-5 border">
+                  <h3 className="font-bold text-slate-800 mb-4">Current Salary Structure</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <InfoRow label="Basic Salary" value={`₹${salaryStructure.basicSalary.toLocaleString()}`} />
+                    <InfoRow label="HRA" value={`₹${salaryStructure.hra.toLocaleString()}`} />
+                    <InfoRow label="DA" value={`₹${salaryStructure.da.toLocaleString()}`} />
+                    <InfoRow label="Total CTC" value={`₹${salaryStructure.totalCTC.toLocaleString()}`} />
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <h3 className="font-bold text-slate-800 mb-4">Recent Payslips</h3>
+                {empPayroll.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="border-b bg-slate-50 text-xs uppercase text-slate-500">
+                          <th className="px-4 py-3">Month</th>
+                          <th className="px-4 py-3">Gross</th>
+                          <th className="px-4 py-3">Deductions</th>
+                          <th className="px-4 py-3">Net Pay</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {empPayroll.map(p => (
+                          <tr key={p.id} className="border-b">
+                            <td className="px-4 py-3 font-medium">{p.month} {p.year}</td>
+                            <td className="px-4 py-3 text-emerald-600">₹{p.grossSalary.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-red-500">₹{p.totalDeductions.toLocaleString()}</td>
+                            <td className="px-4 py-3 font-bold">₹{p.netSalary.toLocaleString()}</td>
+                            <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                            <td className="px-4 py-3"><button className="text-blue-600 hover:underline">Download</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-slate-500 text-sm py-4">No recent payroll records found.</p>
+                )}
+              </div>
             </div>
           )}
 

@@ -8,7 +8,7 @@ import StatusBadge from '../components/shared/StatusBadge';
 import Modal from '../components/shared/Modal';
 import ConfirmDialog from '../components/shared/ConfirmDialog';
 import FormField from '../components/shared/FormField';
-import Toast from '../components/Toast';
+import { useToast } from '../contexts/ToastContext';
 import { employees as initialEmployees, departments } from '../data/employees';
 import type { Employee } from '../types';
 
@@ -18,7 +18,7 @@ const emptyForm = {
   bloodGroup: '', emergencyContact: '', reportingTo: '', employmentType: 'Full-Time',
 };
 
-export default function EmployeeDirectory() {
+export default function EmployeesPage() {
   const navigate = useNavigate();
   const [data, setData] = useState(initialEmployees);
   const [deptFilter, setDeptFilter] = useState('');
@@ -30,7 +30,7 @@ export default function EmployeeDirectory() {
   const [selected, setSelected] = useState<Employee | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const { addToast } = useToast();
 
   const filtered = data.filter(e => {
     if (deptFilter && e.department !== deptFilter) return false;
@@ -92,7 +92,7 @@ export default function EmployeeDirectory() {
     setAddOpen(false);
     setForm(emptyForm);
     setErrors({});
-    setToast({ message: `${newEmp.firstName} ${newEmp.lastName} added successfully.`, type: 'success' });
+    addToast(`${newEmp.firstName} ${newEmp.lastName} added successfully.`, 'success');
   };
 
   const handleEdit = () => {
@@ -127,14 +127,14 @@ export default function EmployeeDirectory() {
     setSelected(null);
     setForm(emptyForm);
     setErrors({});
-    setToast({ message: 'Employee updated successfully.', type: 'success' });
+    addToast('Employee updated successfully.', 'success');
   };
 
   const handleDelete = () => {
     if (!selected) return;
     setData(d => d.filter(e => e.id !== selected.id));
     setSelected(null);
-    setToast({ message: 'Employee removed successfully.', type: 'success' });
+    addToast('Employee removed successfully.', 'success');
   };
 
   const openEdit = (emp: Employee) => {
@@ -211,9 +211,9 @@ export default function EmployeeDirectory() {
       className: 'text-right',
       render: (e: Employee) => (
         <div className="flex justify-end gap-1">
-          <button onClick={(ev) => { ev.stopPropagation(); navigate(`/employees/${e.id}`); }} className="p-1.5 hover:bg-slate-100 rounded" title="View"><Eye size={15} className="text-slate-500" /></button>
-          <button onClick={(ev) => { ev.stopPropagation(); openEdit(e); }} className="p-1.5 hover:bg-slate-100 rounded" title="Edit"><Edit size={15} className="text-slate-500" /></button>
-          <button onClick={(ev) => { ev.stopPropagation(); setSelected(e); setDeleteOpen(true); }} className="p-1.5 hover:bg-red-50 rounded" title="Delete"><Trash2 size={15} className="text-red-400" /></button>
+          <button onClick={(ev) => { ev.stopPropagation(); navigate(`/employees/${e.id}`); }} className="p-1.5 hover:bg-slate-100 rounded text-slate-500" title="View"><Eye size={15} /></button>
+          <button onClick={(ev) => { ev.stopPropagation(); openEdit(e); }} className="p-1.5 hover:bg-slate-100 rounded text-slate-500" title="Edit"><Edit size={15} /></button>
+          <button onClick={(ev) => { ev.stopPropagation(); setSelected(e); setDeleteOpen(true); }} className="p-1.5 hover:bg-red-50 rounded text-red-400" title="Delete"><Trash2 size={15} /></button>
         </div>
       ),
     },
@@ -241,42 +241,45 @@ export default function EmployeeDirectory() {
   );
 
   return (
-    <div className="max-w-[1600px] mx-auto">
+    <div className="max-w-[1600px] mx-auto space-y-6">
       <PageHeader
-        title="Employee Directory"
+        title="Employees"
         subtitle={`${data.length} employees in the organization`}
-        breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Employee Directory' }]}
         actions={
           <div className="flex gap-3">
-            <button className="px-4 py-2 bg-white border rounded-lg hover:bg-slate-50 flex items-center gap-2 text-sm">
+            <button className="px-4 py-2 bg-white border border-slate-200 shadow-sm text-slate-700 font-medium rounded-lg hover:bg-slate-50 flex items-center gap-2 text-sm transition-colors">
               <Download size={16} /> Export
             </button>
-            <button onClick={() => { setForm(emptyForm); setErrors({}); setAddOpen(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm">
+            <button onClick={() => { setForm(emptyForm); setErrors({}); setAddOpen(true); }} className="px-4 py-2 bg-blue-600 shadow-sm text-white font-medium rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm transition-colors">
               <UserPlus size={16} /> Add Employee
             </button>
           </div>
         }
       />
 
-      <FilterBar
-        search={{ value: search, onChange: setSearch, placeholder: 'Search by name, email, or ID...' }}
-        filters={[
-          { name: 'department', label: 'All Departments', value: deptFilter, options: departments.map(d => ({ value: d, label: d })) },
-          { name: 'status', label: 'All Statuses', value: statusFilter, options: [{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }, { value: 'Probation', label: 'Probation' }, { value: 'On Notice', label: 'On Notice' }] },
-        ]}
-        onFilterChange={(name, val) => {
-          if (name === 'department') setDeptFilter(val);
-          if (name === 'status') setStatusFilter(val);
-        }}
-      />
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <FilterBar
+          search={{ value: search, onChange: setSearch, placeholder: 'Search by name, email, or ID...' }}
+          filters={[
+            { name: 'department', label: 'All Departments', value: deptFilter, options: departments.map(d => ({ value: d, label: d })) },
+            { name: 'status', label: 'All Statuses', value: statusFilter, options: [{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }, { value: 'Probation', label: 'Probation' }, { value: 'On Notice', label: 'On Notice' }] },
+          ]}
+          onFilterChange={(name, val) => {
+            if (name === 'department') setDeptFilter(val);
+            if (name === 'status') setStatusFilter(val);
+          }}
+        />
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        pageSize={10}
-        onRowClick={(emp) => navigate(`/employees/${emp.id}`)}
-        emptyMessage="No employees match your filters"
-      />
+        <div className="mt-4">
+          <DataTable
+            columns={columns}
+            data={filtered}
+            pageSize={10}
+            onRowClick={(emp) => navigate(`/employees/${emp.id}`)}
+            emptyMessage="No employees match your filters"
+          />
+        </div>
+      </div>
 
       {/* Add Employee Modal */}
       <Modal
@@ -319,8 +322,6 @@ export default function EmployeeDirectory() {
         message={`Are you sure you want to remove ${selected?.firstName} ${selected?.lastName}? This action cannot be undone.`}
         confirmLabel="Delete"
       />
-
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

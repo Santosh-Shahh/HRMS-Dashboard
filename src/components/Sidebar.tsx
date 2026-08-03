@@ -16,7 +16,7 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
         <p className="px-3 text-xs font-semibold text-slate-500 uppercase">Main Menu</p>
         <NavItem to="/" icon={<LayoutDashboard size={18} />} label="Dashboard" end />
-        <NavItem to="/employees" icon={<Users size={18} />} label="Directory" />
+        <NavItem to="/employees" icon={<Users size={18} />} label="Employees" />
 
         <p className="px-3 pt-4 text-xs font-semibold text-slate-500 uppercase">Time & Operations</p>
         <NavItem to="/attendance" icon={<CalendarCheck size={18} />} label="Attendance" />

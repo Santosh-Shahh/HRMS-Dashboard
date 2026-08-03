@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Building2, Shield, Calendar, Clock, Bell, Plus, Check, Save } from 'lucide-react';
+import { Building2, Shield, Calendar, Clock, Bell, Plus, Check, Save, Info } from 'lucide-react';
 import PageHeader from '../components/shared/PageHeader';
 import TabBar from '../components/shared/TabBar';
 import FormField from '../components/shared/FormField';
 import StatusBadge from '../components/shared/StatusBadge';
 import Modal from '../components/shared/Modal';
-import Toast from '../components/Toast';
+import { useToast } from '../contexts/ToastContext';
 import { companySettings as initialCompany, roles as initialRoles, holidays as initialHolidays, shifts as initialShifts, notificationSettings as initialNotifs } from '../data/settings';
 import type { CompanySetting, Role, Holiday, Shift, NotificationSetting } from '../types';
 
@@ -30,10 +30,10 @@ export default function SettingsPage() {
 
   const [holidayForm, setHolidayForm] = useState({ name: '', date: '', day: 'Monday', type: 'National' as Holiday['type'] });
   const [shiftForm, setShiftForm] = useState({ name: '', startTime: '09:00 AM', endTime: '06:00 PM', breakDuration: '1 hour', workingHours: '8 hours' });
-  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const { addToast } = useToast();
 
   const handleSaveCompany = () => {
-    setToast({ message: 'Company settings updated successfully.', type: 'success' });
+    addToast('Company settings updated successfully.', 'success');
   };
 
   const handleAddHoliday = () => {
@@ -48,7 +48,7 @@ export default function SettingsPage() {
     setHolidays([...holidays, newHol]);
     setAddHolidayOpen(false);
     setHolidayForm({ name: '', date: '', day: 'Monday', type: 'National' });
-    setToast({ message: `Holiday '${newHol.name}' added to calendar.`, type: 'success' });
+    addToast(`Holiday '${newHol.name}' added to calendar.`, 'success');
   };
 
   const handleAddShift = () => {
@@ -66,34 +66,35 @@ export default function SettingsPage() {
     setShifts([...shifts, newShift]);
     setAddShiftOpen(false);
     setShiftForm({ name: '', startTime: '09:00 AM', endTime: '06:00 PM', breakDuration: '1 hour', workingHours: '8 hours' });
-    setToast({ message: `Shift timing '${newShift.name}' created.`, type: 'success' });
+    addToast(`Shift timing '${newShift.name}' created.`, 'success');
   };
 
   const toggleNotif = (id: string, key: 'email' | 'push' | 'sms') => {
     setNotifs(prev =>
       prev.map(n => (n.id === id ? { ...n, [key]: !n[key] } : n))
     );
-    setToast({ message: 'Notification preferences updated.', type: 'success' });
+    addToast('Notification preferences updated.', 'success');
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto">
+    <div className="max-w-[1600px] mx-auto space-y-6">
       <PageHeader
         title="Settings & Governance"
         subtitle="Configure company policies, roles, holiday calendars, and preferences"
-        breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Settings' }]}
       />
 
-      <div className="bg-white rounded-xl border shadow-sm overflow-hidden mb-6">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-2">
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
       {/* Tab Contents */}
-      <div className="bg-white rounded-xl border shadow-sm p-6">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
         {activeTab === 'company' && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-bold text-slate-900 border-b pb-3">General Profile</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+               <Building2 size={20} className="text-blue-600" /> General Profile
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <FormField label="Company Legal Name" name="companyName" value={company.companyName} onChange={(n, v) => setCompany(c => ({ ...c, [n]: v }))} />
               <FormField label="Official Contact Email" name="email" value={company.email} onChange={(n, v) => setCompany(c => ({ ...c, [n]: v }))} />
               <FormField label="Phone Number" name="phone" value={company.phone} onChange={(n, v) => setCompany(c => ({ ...c, [n]: v }))} />
@@ -103,60 +104,60 @@ export default function SettingsPage() {
               <FormField label="Fiscal Year Cycle" name="fiscalYearStart" value={company.fiscalYearStart} onChange={(n, v) => setCompany(c => ({ ...c, [n]: v }))} />
               <FormField label="Default Currency" name="currency" value={company.currency} onChange={(n, v) => setCompany(c => ({ ...c, [n]: v }))} />
             </div>
-            <div className="flex justify-end pt-4 border-t">
+            <div className="flex justify-end pt-6 border-t border-slate-100 mt-8">
               <button
                 onClick={handleSaveCompany}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm flex items-center gap-2"
+                className="px-6 py-2.5 bg-blue-600 shadow-sm text-white rounded-lg hover:bg-blue-700 font-medium text-sm flex items-center gap-2 transition-colors"
               >
-                <Save size={16} /> Save Changes
+                <Save size={18} /> Save Changes
               </button>
             </div>
           </div>
         )}
 
         {activeTab === 'roles' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center border-b pb-4">
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Roles & Access Control Matrix</h3>
-                <p className="text-xs text-slate-500">Define custom roles and module access privileges</p>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Shield size={20} className="text-blue-600" /> Roles & Access Control Matrix</h3>
+                <p className="text-xs text-slate-500 mt-1">Define custom roles and module access privileges across the organization</p>
               </div>
             </div>
 
             <div className="space-y-6">
               {roles.map(role => (
-                <div key={role.id} className="border rounded-xl p-5 bg-slate-50/50">
-                  <div className="flex justify-between items-start mb-4">
+                <div key={role.id} className="border border-slate-200 rounded-xl p-5 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                  <div className="flex justify-between items-start mb-5">
                     <div>
                       <h4 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                        <Shield size={18} className="text-blue-600" /> {role.name}
+                        {role.name}
                       </h4>
-                      <p className="text-xs text-slate-500 mt-0.5">{role.description}</p>
+                      <p className="text-sm text-slate-500 mt-1">{role.description}</p>
                     </div>
-                    <span className="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-bold">
+                    <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1.5 rounded-full font-bold border border-blue-200">
                       {role.usersCount} Users Assigned
                     </span>
                   </div>
 
-                  <div className="overflow-x-auto bg-white rounded-lg border">
+                  <div className="overflow-x-auto bg-white rounded-lg border border-slate-200 shadow-sm">
                     <table className="w-full text-xs text-left">
                       <thead>
-                        <tr className="border-b bg-slate-100/80 text-slate-600 font-semibold uppercase">
-                          <th className="p-3">Module</th>
+                        <tr className="border-b border-slate-200 bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider">
+                          <th className="p-3 pl-4">Module</th>
                           <th className="p-3 text-center">View</th>
                           <th className="p-3 text-center">Create</th>
                           <th className="p-3 text-center">Edit</th>
                           <th className="p-3 text-center">Delete</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-slate-100">
                         {role.permissions.map(perm => (
-                          <tr key={perm.module} className="border-b last:border-0">
-                            <td className="p-3 font-medium text-slate-900">{perm.module}</td>
-                            <td className="p-3 text-center">{perm.canView ? <Check size={16} className="text-emerald-600 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
-                            <td className="p-3 text-center">{perm.canCreate ? <Check size={16} className="text-emerald-600 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
-                            <td className="p-3 text-center">{perm.canEdit ? <Check size={16} className="text-emerald-600 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
-                            <td className="p-3 text-center">{perm.canDelete ? <Check size={16} className="text-emerald-600 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
+                          <tr key={perm.module} className="hover:bg-slate-50">
+                            <td className="p-3 pl-4 font-medium text-slate-900">{perm.module}</td>
+                            <td className="p-3 text-center">{perm.canView ? <Check size={18} className="text-emerald-500 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
+                            <td className="p-3 text-center">{perm.canCreate ? <Check size={18} className="text-emerald-500 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
+                            <td className="p-3 text-center">{perm.canEdit ? <Check size={18} className="text-emerald-500 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
+                            <td className="p-3 text-center">{perm.canDelete ? <Check size={18} className="text-emerald-500 mx-auto" /> : <span className="text-slate-300">—</span>}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -169,33 +170,35 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'holidays' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center border-b pb-4">
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Holiday Calendar 2026</h3>
-                <p className="text-xs text-slate-500">Official company holidays and regional observances</p>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Calendar size={20} className="text-blue-600" /> Holiday Calendar 2026</h3>
+                <p className="text-xs text-slate-500 mt-1">Official company holidays and regional observances</p>
               </div>
               <button
                 onClick={() => setAddHolidayOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-1.5"
+                className="px-4 py-2 bg-blue-600 shadow-sm text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-1.5 transition-colors"
               >
                 <Plus size={16} /> Add Holiday
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {holidays.map(h => (
-                <div key={h.id} className="p-4 border rounded-xl bg-white hover:shadow-sm transition-shadow">
-                  <div className="flex justify-between items-start">
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                      h.type === 'National' ? 'bg-red-50 text-red-600' : h.type === 'Company' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'
+                <div key={h.id} className="p-5 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:shadow-md transition-all group cursor-pointer">
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${
+                      h.type === 'National' ? 'bg-red-50 text-red-700 border-red-100' : h.type === 'Company' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-amber-50 text-amber-700 border-amber-100'
                     }`}>
                       {h.type}
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">{h.day}</span>
+                    <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                       {h.day}
+                    </span>
                   </div>
-                  <h4 className="font-bold text-slate-900 mt-2">{h.name}</h4>
-                  <p className="text-sm font-bold text-blue-600 mt-1">{h.date}</p>
+                  <h4 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">{h.name}</h4>
+                  <p className="text-sm font-bold text-blue-600 mt-1.5">{h.date}</p>
                 </div>
               ))}
             </div>
@@ -203,41 +206,41 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'shifts' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center border-b pb-4">
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Work Shift Configurations</h3>
-                <p className="text-xs text-slate-500">Working hours and break timings</p>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Clock size={20} className="text-blue-600" /> Work Shift Configurations</h3>
+                <p className="text-xs text-slate-500 mt-1">Manage working hours, timings, and break schedules</p>
               </div>
               <button
                 onClick={() => setAddShiftOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-1.5"
+                className="px-4 py-2 bg-blue-600 shadow-sm text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-1.5 transition-colors"
               >
                 <Plus size={16} /> Add New Shift
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border border-slate-200 rounded-lg">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
-                    <th className="p-4">Shift Name</th>
-                    <th>Timing</th>
-                    <th>Break Duration</th>
-                    <th>Work Hours</th>
-                    <th>Assigned Employees</th>
-                    <th>Status</th>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500 font-semibold tracking-wider">
+                    <th className="p-4 pl-6">Shift Name</th>
+                    <th className="p-4">Timing</th>
+                    <th className="p-4">Break Duration</th>
+                    <th className="p-4">Work Hours</th>
+                    <th className="p-4">Assigned Employees</th>
+                    <th className="p-4">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {shifts.map(s => (
-                    <tr key={s.id} className="border-b hover:bg-slate-50/50">
-                      <td className="p-4 font-bold text-slate-900">{s.name}</td>
-                      <td className="font-mono text-xs text-slate-700">{s.startTime} - {s.endTime}</td>
-                      <td className="text-xs text-slate-500">{s.breakDuration}</td>
-                      <td className="font-medium">{s.workingHours}</td>
-                      <td className="font-bold text-blue-600">{s.employees}</td>
-                      <td><StatusBadge status={s.status} /></td>
+                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 pl-6 font-bold text-slate-900">{s.name}</td>
+                      <td className="p-4 font-mono text-xs text-slate-700 bg-slate-100/50 rounded inline-block mt-2 ml-4">{s.startTime} - {s.endTime}</td>
+                      <td className="p-4 text-xs text-slate-500 font-medium">{s.breakDuration}</td>
+                      <td className="p-4 font-medium text-slate-800">{s.workingHours}</td>
+                      <td className="p-4 font-bold text-blue-600">{s.employees}</td>
+                      <td className="p-4"><StatusBadge status={s.status} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -247,44 +250,49 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'notifications' && (
-          <div className="space-y-6">
-            <div className="border-b pb-4">
-              <h3 className="text-lg font-bold text-slate-900">Notification Preferences</h3>
-              <p className="text-xs text-slate-500">Configure email, web push, and SMS dispatch rules</p>
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="border-b border-slate-100 pb-4">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><Bell size={20} className="text-blue-600" /> Notification Preferences</h3>
+              <p className="text-xs text-slate-500 mt-1">Configure global email, web push, and SMS dispatch rules</p>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 text-sm text-blue-800 mb-6">
+               <Info className="shrink-0 text-blue-500 mt-0.5" size={18} />
+               <p>These are system-wide defaults. Individual employees can still manage their personal notification preferences from their profile settings.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {notifs.map(n => (
-                <div key={n.id} className="flex items-center justify-between p-4 border rounded-xl hover:bg-slate-50/50">
+                <div key={n.id} className="flex items-center justify-between p-5 border border-slate-200 rounded-xl hover:border-blue-200 hover:bg-blue-50/20 transition-colors bg-white">
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm">{n.name}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{n.description}</p>
+                    <h4 className="font-bold text-slate-900">{n.name}</h4>
+                    <p className="text-sm text-slate-500 mt-1">{n.description}</p>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-600">
+                  <div className="flex items-center gap-8">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors">
                       <input
                         type="checkbox"
                         checked={n.email}
                         onChange={() => toggleNotif(n.id, 'email')}
-                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
                       />
                       Email
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-600">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors">
                       <input
                         type="checkbox"
                         checked={n.push}
                         onChange={() => toggleNotif(n.id, 'push')}
-                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
                       />
-                      Push
+                      Web Push
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-600">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors">
                       <input
                         type="checkbox"
                         checked={n.sms}
                         onChange={() => toggleNotif(n.id, 'sms')}
-                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
                       />
                       SMS
                     </label>
@@ -304,12 +312,12 @@ export default function SettingsPage() {
         size="md"
         footer={
           <>
-            <button onClick={() => setAddHolidayOpen(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-            <button onClick={handleAddHoliday} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Add Holiday</button>
+            <button onClick={() => setAddHolidayOpen(false)} className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Cancel</button>
+            <button onClick={handleAddHoliday} className="px-4 py-2 bg-blue-600 shadow-sm text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors">Add Holiday</button>
           </>
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 p-1">
           <FormField label="Holiday Name" name="name" value={holidayForm.name} onChange={(n, v) => setHolidayForm(f => ({ ...f, [n]: v }))} placeholder="e.g. Diwali" required />
           <FormField label="Date" name="date" type="date" value={holidayForm.date} onChange={(n, v) => setHolidayForm(f => ({ ...f, [n]: v }))} required />
           <FormField label="Day of Week" name="day" value={holidayForm.day} onChange={(n, v) => setHolidayForm(f => ({ ...f, [n]: v }))} placeholder="e.g. Sunday" />
@@ -325,12 +333,12 @@ export default function SettingsPage() {
         size="md"
         footer={
           <>
-            <button onClick={() => setAddShiftOpen(false)} className="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-            <button onClick={handleAddShift} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Save Shift</button>
+            <button onClick={() => setAddShiftOpen(false)} className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-sm font-medium transition-colors">Cancel</button>
+            <button onClick={handleAddShift} className="px-4 py-2 bg-blue-600 shadow-sm text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors">Save Shift</button>
           </>
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 p-1">
           <FormField label="Shift Name" name="name" value={shiftForm.name} onChange={(n, v) => setShiftForm(f => ({ ...f, [n]: v }))} placeholder="e.g. Night Shift" required />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Start Time" name="startTime" value={shiftForm.startTime} onChange={(n, v) => setShiftForm(f => ({ ...f, [n]: v }))} placeholder="10:00 PM" />
@@ -339,8 +347,6 @@ export default function SettingsPage() {
           <FormField label="Break Duration" name="breakDuration" value={shiftForm.breakDuration} onChange={(n, v) => setShiftForm(f => ({ ...f, [n]: v }))} placeholder="1 hour" />
         </div>
       </Modal>
-
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
 }
