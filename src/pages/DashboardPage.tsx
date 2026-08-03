@@ -1,0 +1,66 @@
+import { useState } from 'react';
+import KPICards from '../components/KPICards';
+import { HoursTrackingChart, DepartmentChart, PayrollExpenseChart } from '../components/Charts';
+import LeaveRequests from '../components/LeaveRequests';
+import LiveSessions from '../components/LiveSessions';
+import RecruitmentPipeline from '../components/RecruitmentPipeline';
+import UpcomingEvents from '../components/UpcomingEvents';
+import ActionItems from '../components/ActionItems';
+import Toast from '../components/Toast';
+import { initialLeaves } from '../data/dashboardData';
+
+export default function DashboardPage() {
+  const [leaves, setLeaves] = useState(initialLeaves);
+  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const [tasks, setTasks] = useState<Record<string, boolean>>({ task1: false, task2: false, task3: false });
+
+  const handleLeave = (id: number, a: 'approve' | 'reject') => {
+    setLeaves(v => v.map(l => (l.id === id ? { ...l, status: a === 'approve' ? 'approved' : 'rejected' } : l)));
+    setToast({ message: a === 'approve' ? 'Leave request approved successfully.' : 'Leave request rejected.', type: a === 'approve' ? 'success' : 'error' });
+  };
+
+  return (
+    <>
+      <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="flex justify-between items-end">
+          <div>
+            <p className="text-xs text-blue-700">● Live Environment <span className="text-slate-500 ml-2">Saturday, July 18, 2026</span></p>
+            <h1 className="text-3xl font-bold">Good Morning, Admin</h1>
+            <p className="text-sm text-slate-500">Here is what's happening across your organization today.</p>
+          </div>
+          <div className="flex gap-3">
+            <button className="px-4 py-2 bg-white border rounded">Export EOD Report</button>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded">+ Add Employee</button>
+          </div>
+        </div>
+        <KPICards />
+        <div className="grid lg:grid-cols-3 gap-5">
+          <section className="lg:col-span-2 bg-white p-6 rounded-xl border">
+            <h2 className="font-bold">Working Hours Analysis</h2>
+            <div className="h-[300px]"><HoursTrackingChart /></div>
+          </section>
+          <section className="bg-white p-6 rounded-xl border">
+            <h2 className="font-bold">Workforce Dist.</h2>
+            <div className="h-[300px]"><DepartmentChart /></div>
+          </section>
+        </div>
+        <div className="grid lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2"><LeaveRequests leaves={leaves} onAction={handleLeave} /></div>
+          <LiveSessions />
+        </div>
+        <div className="grid lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2"><RecruitmentPipeline /></div>
+          <UpcomingEvents />
+        </div>
+        <div className="grid lg:grid-cols-3 gap-5 pb-10">
+          <section className="lg:col-span-2 bg-white p-6 rounded-xl border">
+            <h2 className="font-bold">Payroll Expenses (YTD)</h2>
+            <div className="h-[280px]"><PayrollExpenseChart /></div>
+          </section>
+          <ActionItems tasks={tasks} toggle={id => setTasks(t => ({ ...t, [id]: !t[id] }))} />
+        </div>
+      </div>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </>
+  );
+}
